@@ -246,7 +246,8 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void displayFromUri(Uri uri) {
-        folioReader.openBook(uri.getPath());
+        String contentUri = getPathFromURI(uri);
+        folioReader.openBook(contentUri);
     }
 
     public void onResult(int resultCode, Intent intent) {
@@ -264,5 +265,15 @@ public class HomeActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         onResult(resultCode, data);
+    }
+
+    private String getPathFromURI(Uri uri) {
+        // /document/raw:/storage/emulated/0/Download/Alice_s_Adventures_in_Wonderland.epub
+        String path = uri.getPath();
+        String documentType = "/document/raw";
+        if (path != null && path.startsWith(documentType)) {
+            path = path.split(":")[1];
+        }
+        return path;
     }
 }
