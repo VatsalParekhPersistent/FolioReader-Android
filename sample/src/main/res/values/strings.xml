@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">FolioReader Sample</string>
     <string name="toast_pick_file_error">Unable to pick file. Check status of file manager.</string>
+
+    <string name="title_activity_book_reader">BookReaderActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

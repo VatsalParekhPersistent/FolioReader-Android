@@ -15,13 +15,17 @@
  */
 package com.folioreader.android.sample;
 
+import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -215,9 +219,59 @@ public class HomeActivity extends AppCompatActivity
                 pickFile();
             }
         });
+
+        findViewById(R.id.btn_url).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ReadLocator readLocator = getLastReadLocator();
+                folioReader.setReadLocator(readLocator);
+                EditText epubURLEditText = findViewById(R.id.epubURLEditText);
+                Intent intent = new Intent(getApplicationContext(),BookReaderActivity.class);
+                intent.putExtra("book_id",epubURLEditText.getText().toString());
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                //        final String url = epubURLEditText.getText().toString();
+            }
+        });
+        manager = (DownloadManager) getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
     }
 
-    void launchPicker() {
+    private void openEbook(String url){
+        try {
+            final long downloadedFileId = downloadFile(url);
+            Thread readerThread = new Thread(new Runnable(){
+                @Override
+                public void run() {
+                    try{
+                        Thread.sleep(10000);
+                        Uri downloadedFileUri = manager.getUriForDownloadedFile(downloadedFileId);
+                        displayFromUri(downloadedFileUri);
+                    }catch (Exception e){
+                        Log.e("readerThread","error"+e.getMessage(),e);
+                    }
+                }
+            });
+            readerThread.start();
+        }catch (Exception e){
+            Log.e(HomeActivity.class.getSimpleName(),"error : "+e.getMessage(),e);
+        }
+    }
+
+    private long downloadFile(String url){
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription("Downloading epub from url "+url);
+        request.setTitle("Downloading epub");
+        // in order for this if to run, you must use the android 3.2 to compile your app
+        request.allowScanningByMediaScanner();
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
+                "folio-remote-epub.epub");
+
+        // get download service and enqueue file
+        return manager.enqueue(request);
+    }
+
+    private void launchPicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("application/epub+zip");
         try {
@@ -276,4 +330,6 @@ public class HomeActivity extends AppCompatActivity
         }
         return path;
     }
+
+    private DownloadManager manager;
 }

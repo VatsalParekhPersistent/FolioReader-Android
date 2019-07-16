@@ -411,10 +411,13 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     fun startContentHighlightActivity() {
 
         val intent = Intent(this@FolioActivity, ContentHighlightActivity::class.java)
-
-        intent.putExtra(Constants.PUBLICATION, pubBox!!.publication)
+        pubBox?.let{
+            intent.putExtra(Constants.PUBLICATION, it.publication)
+        }
         try {
-            intent.putExtra(CHAPTER_SELECTED, spine!![currentChapterIndex].href)
+            spine?.let{
+                intent.putExtra(CHAPTER_SELECTED, it[currentChapterIndex].href)
+            }
         } catch (e: NullPointerException) {
             Log.w(LOG_TAG, "-> ", e)
             intent.putExtra(CHAPTER_SELECTED, "")
